@@ -1,0 +1,11 @@
+{% extends "html.html" %}
+
+{% block title %}{{ block.super }} - Completed Job{% endblock %}
+
+{% block content %}
+<h2>{{ task.title|escape }}</h2>
+<p>{{ task.description|escape|linebreaksbr }}</p>
+<p>Created: {{ task.created|date:"r" }}</p>
+<p>Assigned in {{ task.assigned|timeuntil:task.created }}</p>
+<p>Completed in {{ task.completed|timeuntil:task.assigned }}</p>
+{% endblock %}

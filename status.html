@@ -1,0 +1,10 @@
+{% extends "html.html" %}
+
+{% block content %}
+{% if task %}
+<p>Currently working on:</p>
+<p><a href="/go/{{ task.key|escape }}">{{ task.title|escape }}</a></p>
+{% else %}
+<p>Looks like you're not working on anything at the moment.</p>
+{% endif %}
+{% endblock %}

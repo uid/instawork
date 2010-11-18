@@ -1,0 +1,131 @@
+/*
+ * http://kuler.adobe.com/#themeID/1081823
+ */
+
+* {
+    margin: 0
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: Helvetica, 'Helvetica Neue', sans-serif;
+    font-size: 0.25in;
+    color: #061E1F;
+}
+
+#container {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 1in -1in;
+}
+
+p {
+    margin: 1em 0;
+}
+
+tt {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.28in;
+}
+
+button {
+    font-family: Helvetica, 'Helvetica Neue', sans-serif;
+    font-size: 0.25in;
+    border: none;
+    padding: 0;
+    background: white;
+    color: #FF7813;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    font-family: 'Reenie Beanie';
+    font-size: 1.25in;
+    font-weight: normal;
+    padding: 0.5in 0 0 0;
+}
+
+h2 {
+    font-size: 0.5in;
+    font-weight: normal;
+}
+
+a {
+    color: #FF7813;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#navigation {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#navigation li {
+    float: left;
+    padding-right: 0.25in;
+}
+
+#navigation a {
+    color: #98B000;
+}
+
+#user {
+    position: absolute;
+    top: 0.5in;
+    right: 1in;
+    text-align: center;
+}
+
+#username {
+    font-family: 'Reenie Beanie';
+    font-size: 0.5in;
+    padding: 0 0.25in;
+    margin-bottom: 0.25in;
+    border-bottom: 1px dashed #FFE30E;
+}
+
+#content {
+    margin-top: 1in;
+}
+
+#footer, #push {
+    position: relative;
+    height: 1in;
+    margin: 0 1in;
+}
+
+#footer div {
+    font-family: 'Reenie Beanie';
+    color: #164A22;
+    position:absolute; bottom:0px;
+}
+
+.bracketed {
+    position: relative;
+    padding: 0.1in 0.25in;
+}
+
+.bracket {
+    position: absolute;
+    height: 0.25in;
+    line-height: 0.45in;
+    font-family: 'Reenie Beanie';
+    font-size: 1in;
+    color: #FFE30E;
+    z-index: -1;
+}

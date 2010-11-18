@@ -1,0 +1,29 @@
+<html>
+<head>
+<title>{% block title %}Instawork{% endblock %}</title>
+<link href="http://fonts.googleapis.com/css?family=Inconsolata&subset=latin" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Reenie+Beanie&subset=latin" rel="stylesheet" type="text/css">
+<link type="text/css" rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<div id="container">
+<h1><span style="color:#164A22">Insta</span><span style="color:#061E1F">work</span></h1>
+<ul id="navigation">
+<li><a href="/">home</a></li>
+</ul>
+<div id="user">
+{% if user %}
+<div id="username">{{ user.nickname|escape }}</div>
+<a href="{{ logout_url }}">log out</a>
+{% endif %}
+</div>
+<div id="content">
+{% block content %}{% endblock %}
+</div>
+<div id="push"></div>
+</div>
+<div id="footer">
+<div>Instawork is a MIT HCI UID CSAIL project, and it's so alpha {{ pain|random|escape }}</div>
+</div>
+</body>
+</html>

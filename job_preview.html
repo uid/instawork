@@ -1,0 +1,10 @@
+{% extends "html.html" %}
+
+{% block content %}
+<p>{{ enticements|random|escape }}</p>
+<h2>{{ task.title|escape }}</h2>
+<p>{{ task.description|escape|linebreaksbr }}</p>
+<form method="post">
+<button>Sounds great, let's go</button>
+</form>
+{% endblock %}

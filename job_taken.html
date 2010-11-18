@@ -1,0 +1,9 @@
+{% extends "html.html" %}
+
+{% block title %}{{ block.super }} - Job Taken{% endblock %}
+
+{% block content %}
+<h2>Whoops!</h2>
+<p>Sorry, {{ apologies|random|escape }}.</p>
+<p>Afraid you'll have to wait for the next Instawork job opportunity.</p>
+{% endblock %}

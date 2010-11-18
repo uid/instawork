@@ -1,0 +1,22 @@
+application: instawork
+version: 1
+runtime: python
+api_version: 1
+
+inbound_services:
+- xmpp_message
+
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /queue/.*
+  script: main.py
+  login: admin
+
+- url: /go/.*|/done/.*
+  login: required
+  script: main.py
+
+- url: .*
+  script: main.py
