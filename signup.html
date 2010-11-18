@@ -2,7 +2,12 @@
 
 {% block content %}
 <h2>Signing up is simple</h2>
-<p>Send the following instant message</p>
+<p>First, accept a chat invite from <tt>instawork@appspot.com</tt>...<p>
+<form method="post">
+<button>click here to send the invite</button>
+</form>
+<br/>
+<p>Then send the following instant message...</p>
 <p>From: <tt>{{ user.email|escape }}</tt></p>
 <p>To: <tt>instawork@appspot.com</tt></p>
 <div style="float: left">

@@ -33,16 +33,25 @@ class MainHandler(webapp.RequestHandler):
         if worker:
             render(self, 'status', worker.task)
         elif user:
-            memcache.add(user.email(), user, namespace='user_emails')
             render(self, 'signup', vars={ 'signup_phrase': signup_phrase_for(user.email()) })
         else:
             render(self, 'index')
 
+    def post(self):
+        user = users.get_current_user()
+        if user:
+            xmpp.send_invite(user.email())
+            memcache.add(user.email(), user, namespace='user_emails')
+            self.get()
+        else:
+            render(self, 'error')
+
 class XMPPHandler(webapp.RequestHandler):
     def post(self):
         message = xmpp.Message(self.request.POST)
-        user = memcache.get(message.sender, namespace='user_emails')
-        if user and message.body.lower() == signup_phrase_for(message.sender):
+        sender = message.sender.partition('/')[0]
+        user = memcache.get(sender, namespace='user_emails')
+        if user and message.body.lower() == signup_phrase_for(sender):
             Worker(key_name=user.user_id(), user=user).put()
             message.reply("Welcome to Instawork!")
 
