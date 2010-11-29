@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
@@ -13,6 +14,9 @@ class Task(db.Model):
     assigned = db.DateTimeProperty()
     assigned_to = db.UserProperty()
     completed = db.DateTimeProperty()
+
+    def fullURL(self):
+        return '%s?submitURL=http://%s/done/%s' % (self.url, os.environ['HTTP_HOST'], self.key())
 
     @staticmethod
     def create(params, creator):

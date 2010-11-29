@@ -4,5 +4,5 @@
 <p>Hey, shouldn't you be off working on:</p>
 <h2>{{ task.title|escape }}</h2>
 <p>{{ task.description|escape|linebreaksbr }}</p>
-<a href="{{ task.url|escape }}">take me there again</a>
+<a href="{{ task.fullURL|escape }}">take me there again</a>
 {% endblock %}
