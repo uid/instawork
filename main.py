@@ -31,7 +31,10 @@ class MainHandler(webapp.RequestHandler):
         user = users.get_current_user()
         worker = user and Worker.get_by_key_name(user.user_id())
         if worker:
-            render(self, 'status', worker.task)
+            render(self, 'status', worker.task, vars={
+                'open': Task.all().filter('creator =', user).filter('completed =', None),
+                'done': Task.all().filter('creator =', user).filter('completed !=', None)
+            })
         elif user:
             render(self, 'signup', vars={ 'signup_phrase': signup_phrase_for(user.email()) })
         else:

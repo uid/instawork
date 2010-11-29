@@ -7,4 +7,15 @@
 {% else %}
 <p>Looks like you're not working on anything at the moment.</p>
 {% endif %}
+<br/>
+{% for result in open %}
+{% if forloop.first %}<h2>In-progress job requests</h2>{% endif %}
+<p>{{ result.title|escape }}<br/>
+{% if result.assigned %}Assigned {{ result.assigned|date:"r" }}{% else %}Unassigned{% endif %}</p>
+{% endfor %}
+<br/>
+{% for result in done %}
+{% if forloop.first %}<h2>Completed job requests</h2>{% endif %}
+<p>{{ result.title|escape }}<br/>Completed {{ result.completed|date:"r" }}</p>
+{% endfor %}
 {% endblock %}
