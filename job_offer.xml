@@ -1,0 +1,1 @@
+<body>Job for you on Instawork: <a href="http://{{ host|escape }}/go/{{ task.key|escape }}">{{ task.title|escape }}</a></body>

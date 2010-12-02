@@ -73,10 +73,13 @@ class RecruitHandler(webapp.RequestHandler):
         task = Task.get(self.request.get('task'))
         if task.assigned_to:
             return
-        for ii in range(10):
-            worker = Worker.free()
+        for worker in Worker.free_for(task):
             if xmpp.get_presence(worker.user.email()):
-                xmpp.send_message(worker.user.email(), 'Job for you on Instawork: http://%s/go/%s' % (self.request.host, task.key()))
+                logging.info("Offering to %s task %s", worker.user.email(), task.key())
+                worker.contacted()
+                xmpp.send_message(worker.user.email(),
+                                  template.render('job_offer.xml', { 'host': self.request.host, 'task': task }),
+                                  raw_xml=True)
                 task.queue(30)
                 return
         logging.warn("No free workers for task %s", task.key())
@@ -113,20 +116,23 @@ class DoneHandler(webapp.RequestHandler):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         task = Task.get(key)
         if task.complete(worker):
+            worker.contactable()
+            xmpp.send_message(task.creator.email(), 'Your Instawork job was completed: %s' % task.title)
             render(self, 'job_done', task);
         else:
             render(self, 'error')
 
-def main():
-    application = webapp.WSGIApplication([('/', MainHandler),
-                                          ('/_ah/xmpp/message/chat/', XMPPHandler),
-                                          ('/api/create_task', CreateHandler),
-                                          ('/queue/recruit', RecruitHandler),
-                                          ('/go/(.*)', JobHandler),
-                                          ('/done/(.*)', DoneHandler)],
-                                         debug=True)
-    util.run_wsgi_app(application)
+def routes():
+    return [('/', MainHandler),
+            ('/_ah/xmpp/message/chat/', XMPPHandler),
+            ('/api/create_task', CreateHandler),
+            ('/queue/recruit', RecruitHandler),
+            ('/go/(.*)', JobHandler),
+            ('/done/(.*)', DoneHandler)]
 
+def main():
+    application = webapp.WSGIApplication(routes(), debug=True)
+    util.run_wsgi_app(application)
 
 if __name__ == '__main__':
     main()

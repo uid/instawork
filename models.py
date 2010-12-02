@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime, timedelta
+import logging
 import os
 
 from google.appengine.api import memcache
@@ -31,7 +32,7 @@ class Task(db.Model):
         if self.assigned_to:
             return False
         self.assigned_to = worker.user
-        self.assigned = datetime.datetime.now()
+        self.assigned = datetime.now()
         self.put()
         return True
 
@@ -45,7 +46,7 @@ class Task(db.Model):
     def complete(self, worker):
         if self.completed or self.assigned_to != worker.user:
             return False
-        self.completed = datetime.datetime.now()
+        self.completed = datetime.now()
         self.put()
         if worker.task and worker.task.key() == self.key():
             worker.task = None
@@ -56,19 +57,29 @@ class Worker(db.Model):
     user = db.UserProperty(required=True)
     joined = db.DateTimeProperty(auto_now_add=True)
     task = db.ReferenceProperty(Task)
+    next_contact = db.DateTimeProperty(required=True, auto_now_add=True)
 
     @staticmethod
-    def free():
-        query = lambda: Worker.all().filter('task =', None)
-        worker_cursor = memcache.get('worker_cursor')
-        workers = query()
-        if worker_cursor:
-            workers = workers.with_cursor(worker_cursor)
-        try:
-            worker = workers.fetch(1)[0]
-        except IndexError:
-            workers = query()
-            worker = workers.fetch(1)[0]
-        memcache.set('worker_cursor', workers.cursor())
-        return worker
+    def free_for(task):
+        query = Worker.all().filter('task =', None).order('next_contact')
+        cursor_key = 'free_cursor_%s' % task.key()
+        cursor = memcache.get(cursor_key)
+        if cursor:
+            query.with_cursor(cursor)
+        for worker in query:
+            if worker.next_contact > datetime.now():
+                logging.info("Cannot contact %s yet for task %s", worker.user.email(), task.key())
+                return
+            memcache.set(cursor_key, query.cursor())
+            if worker.user == task.creator:
+                continue
+            yield worker
+        memcache.delete(cursor_key)
 
+    def contacted(self):
+        self.next_contact = datetime.now() + timedelta(minutes=5)
+        self.put()
+
+    def contactable(self):
+        self.next_contact = datetime.now() + timedelta(seconds=1)
+        self.put()
