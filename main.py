@@ -20,7 +20,7 @@ def render(handler, templatefile, task=None, vars={}):
         'task': task
     })
     vars.update(strings.__dict__)
-    handler.response.out.write(template.render(templatefile+'.html', vars))
+    handler.response.out.write(template.render('templates/'+templatefile+'.html', vars))
 
 def signup_phrase_for(email):
     idx = zlib.adler32(email)
@@ -78,7 +78,7 @@ class RecruitHandler(webapp.RequestHandler):
                 logging.info("Offering to %s task %s", worker.user.email(), task.key())
                 worker.contacted()
                 xmpp.send_message(worker.user.email(),
-                                  template.render('job_offer.xml', { 'host': self.request.host, 'task': task }),
+                                  template.render('templates/job_offer.xml', { 'host': self.request.host, 'task': task }),
                                   raw_xml=True)
                 task.queue(30)
                 return
