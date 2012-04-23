@@ -10,9 +10,12 @@ html, body {
     height: 100%;
 }
 
-body {
-    font-family: Helvetica, 'Helvetica Neue', sans-serif;
+body, button {
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 0.25in;
+}
+
+body {
     color: #061E1F;
 }
 
@@ -24,7 +27,7 @@ body {
 }
 
 p {
-    margin: 1em 0;
+    margin: 0.5em 0;
 }
 
 tt {
@@ -33,8 +36,6 @@ tt {
 }
 
 button {
-    font-family: Helvetica, 'Helvetica Neue', sans-serif;
-    font-size: 0.25in;
     border: none;
     padding: 0;
     background: white;
@@ -47,12 +48,16 @@ button:hover {
     text-decoration: underline;
 }
 
+h1, #username, #footer div, .bracket {
+    font-family: 'Sue Ellen Francisco';
+}
+
 h1 {
-    font-family: 'Reenie Beanie';
-    font-size: 1.25in;
+    font-size: 1in;
     font-weight: normal;
-    letter-spacing: -0.05em;
-    padding: 0.5in 0 0 0;
+    padding: 0.25in 0 0 0;
+    height: 4ex;
+    overflow: hidden;
 }
 
 h2 {
@@ -72,7 +77,6 @@ a:hover {
 
 #navigation {
     list-style-type: none;
-    margin: 0;
     padding: 0;
 }
 
@@ -93,15 +97,14 @@ a:hover {
 }
 
 #username {
-    font-family: 'Reenie Beanie';
-    font-size: 0.5in;
+    font-size: 0.25in;
     padding: 0 0.25in;
     margin-bottom: 0.25in;
     border-bottom: 1px dashed #FFE30E;
 }
 
 #content {
-    margin-top: 1in;
+    margin-top: 0.75in;
 }
 
 #footer, #push {
@@ -111,7 +114,6 @@ a:hover {
 }
 
 #footer div {
-    font-family: 'Reenie Beanie';
     color: #164A22;
     position:absolute; bottom:0px;
 }
@@ -123,10 +125,21 @@ a:hover {
 
 .bracket {
     position: absolute;
-    height: 0.25in;
-    line-height: 0.45in;
-    font-family: 'Reenie Beanie';
+    line-height: 1em;
     font-size: 1in;
     color: #FFE30E;
     z-index: -1;
+}
+
+.flip {
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
+    -moz-transform-origin: 50% 0;
+    -webkit-transform-origin: 50% 0;
+    -o-transform-origin: 50% 0;
+    -ms-transform-origin: 50% 0;
+    transform-origin: 50% 0;
 }

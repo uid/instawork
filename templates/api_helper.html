@@ -4,7 +4,7 @@
 
 {% block content %}
 <h2>API helper</h2>
-<p><tt>{{ url|escape }}</tt></p>
+<p><tt style="word-wrap: break-word">{{ url|escape }}</tt></p>
 <form action="{{ url|escape }}" method="post">
 <button>{{ name|escape }}</button>
 </form>
