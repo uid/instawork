@@ -71,6 +71,9 @@ class CreateHandler(webapp.RequestHandler):
 class RecruitHandler(webapp.RequestHandler):
     def post(self):
         task = Task.get(self.request.get('task'))
+        if not task:
+            logging.warn("Recruitment aborted for missing task %s", self.request.get('task'))
+            return
         if task.assigned_to:
             return
         for worker in Worker.free_for(task):
