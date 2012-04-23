@@ -2,6 +2,7 @@ import cgi
 import logging
 import zlib
 
+from google.appengine.api import channel
 from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.api import xmpp
@@ -36,7 +37,10 @@ class MainHandler(webapp.RequestHandler):
                 'done': Task.all().filter('creator =', user).filter('completed !=', None)
             })
         elif user:
-            render(self, 'signup', vars={ 'signup_phrase': signup_phrase_for(user.email()) })
+            render(self, 'signup', vars={
+                'signup_phrase': signup_phrase_for(user.email()),
+                'channel_token': channel.create_channel(user.user_id() + 'signup')
+            })
         else:
             render(self, 'index')
 
@@ -45,9 +49,9 @@ class MainHandler(webapp.RequestHandler):
         if user:
             xmpp.send_invite(user.email())
             memcache.add(user.email(), user, namespace='user_emails')
-            self.get()
+            self.response.set_status(204)
         else:
-            render(self, 'error')
+            self.response.set_status(403)
 
 class XMPPHandler(webapp.RequestHandler):
     def post(self):
@@ -57,6 +61,7 @@ class XMPPHandler(webapp.RequestHandler):
         if user and message.body.lower() == signup_phrase_for(sender):
             Worker(key_name=user.user_id(), user=user).put()
             message.reply("Welcome to Instawork!")
+            channel.send_message(user.user_id() + 'signup', 'confirmed')
 
 class CreateHandler(webapp.RequestHandler):
     def get(self):

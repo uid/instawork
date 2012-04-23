@@ -3,11 +3,11 @@
 {% block content %}
 <h2>Signing up is simple</h2>
 <p>First, accept a chat invite from <tt>instawork@appspot.com</tt>...<p>
-<form method="post">
-<button>click here to send the invite</button>
-</form>
+<button id="send_invite">click here to send the invite</button>
 <br/>
-<p>Then send the following instant message...</p>
+<br/>
+<div id="im_instructions" style="display:none">
+<p>Now send the following instant message...</p>
 <p>From: <tt>{{ user.email|escape }}</tt></p>
 <p>To: <tt>instawork@appspot.com</tt></p>
 <div style="float: left">
@@ -17,5 +17,27 @@
 <div style="top:100%; right:0;" class="bracket flip">&quot;</div>
 </div>
 </div>
+</div>
 <br style="clear:both"/>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="/_ah/channel/jsapi"></script>
+<script>
+$("#send_invite").click(function() {
+  $.ajax('/', {
+    type: 'POST',
+    success: function() { $("#im_instructions").fadeIn(); },
+    error: function() { alert("Unable to send chat invite."); }
+  });
+  return false;
+});
+var channel = new goog.appengine.Channel('{{ channel_token|escape }}');
+var socket = channel.open();
+var handlers = {
+  confirmed: function() { window.location.href = '/'; }
+};
+socket.onmessage = function(message) { handlers[message.data](); };
+</script>
 {% endblock %}
