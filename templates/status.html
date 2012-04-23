@@ -11,11 +11,16 @@
 {% for result in open %}
 {% if forloop.first %}<h2>In-progress job requests</h2>{% endif %}
 <p>{{ result.title|escape }}<br/>
-{% if result.assigned %}Assigned {{ result.assigned|date:"r" }}{% else %}Unassigned{% endif %}</p>
+{% if result.assigned %}
+Assigned {{ result.assigned|timesince }} ago
+{% else %}
+Created {{ result.created|timesince }} ago
+{% endif %}</p>
 {% endfor %}
 <br/>
 {% for result in done %}
 {% if forloop.first %}<h2>Completed job requests</h2>{% endif %}
-<p>{{ result.title|escape }}<br/>Completed {{ result.completed|date:"r" }}</p>
+<p>{{ result.title|escape }}<br/>
+Completed {{ result.completed|timesince }} ago</p>
 {% endfor %}
 {% endblock %}
