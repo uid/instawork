@@ -1,1 +1,1 @@
-<body>Job for you on Instawork: <a href="http://{{ host|escape }}/go/{{ task.key|escape }}">{{ task.title|escape }}</a></body>
+<body>Job for you on Instawork: {{ task.title|escape }}, http://{{ host|escape }}/go/{{ task.key|escape }}</body><html xmlns="http://jabber.org/protocol/xhtml-im"><body xmlns="http://www.w3.org/1999/xhtml">Job for you on Instawork: <a href="http://{{ host|escape }}/go/{{ task.key|escape }}">{{ task.title|escape }}</a></body></html>
