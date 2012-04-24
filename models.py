@@ -7,6 +7,8 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
 
+from utils import *
+
 class Task(db.Model):
     title = db.StringProperty(required=True)
     description = db.TextProperty(required=True)
@@ -24,7 +26,7 @@ class Task(db.Model):
         ] ] + [ ('taskId', str(self.key())) ])
 
     def fullURL(self):
-        return '%s?submitURL=http://%s/done/%s' % (self.url, os.environ['HTTP_HOST'], self.key())
+        return url_with_params(self.url, { 'taskId': self.key() })
 
     @staticmethod
     def create(params, creator):
