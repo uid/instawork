@@ -17,6 +17,12 @@ class Task(db.Model):
     assigned_to = db.UserProperty()
     completed = db.DateTimeProperty()
 
+    def to_dict(self):
+        jsonable = lambda p: str(p) if p else None
+        return dict([ (p, jsonable(getattr(self, p))) for p in [
+            'title', 'description', 'url', 'created', 'assigned', 'completed'
+        ] ] + [ ('taskId', str(self.key())) ])
+
     def fullURL(self):
         return '%s?submitURL=http://%s/done/%s' % (self.url, os.environ['HTTP_HOST'], self.key())
 

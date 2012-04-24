@@ -5,6 +5,8 @@ import zlib
 from google.appengine.dist import use_library
 use_library('django', '1.2')
 
+from django.utils import simplejson
+
 from google.appengine.api import channel
 from google.appengine.api import memcache
 from google.appengine.api import users
@@ -35,6 +37,9 @@ def error(handler, code, message=None):
         'message': message,
         'default': webapp.Response.http_status_message(code)
     })
+
+def json(handler, dict):
+    handler.response.out.write(simplejson.dumps(dict))
 
 def signup_phrase_for(email):
     idx = zlib.adler32(email)
@@ -98,6 +103,23 @@ class CreateHandler(webapp.RequestHandler):
             return
         task = Task.create(self.request.params, creator.user)
         task.queue(0)
+        json(self, task.to_dict())
+
+class GetHandler(webapp.RequestHandler):
+    def get(self):
+        creator = Worker.get_by_key_name(self.request.get('userId'))
+        if creator.api_key != self.request.get('secretKey'):
+            error(self, 403)
+            return
+        if self.request.get('taskId'):
+            task = Task.get(self.request.get('taskId'))
+            if task:
+                json(self, task.to_dict())
+            else:
+                error(self, 404)
+        else:
+            tasks = Task.all().filter('creator =', creator.user)
+            json(self, { 'tasks': [ task.to_dict() for task in tasks ] })
 
 class RecruitHandler(webapp.RequestHandler):
     def post(self):
@@ -163,6 +185,7 @@ def routes():
             ('/_ah/xmpp/message/chat/', XMPPHandler),
             ('/requester', RequesterHandler),
             ('/api/create_task', CreateHandler),
+            ('/api/get_tasks?', GetHandler),
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),
             ('/done/(.*)', DoneHandler)]
