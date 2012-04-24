@@ -9,6 +9,7 @@ from django.utils import simplejson
 
 from google.appengine.api import channel
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.api import xmpp
 from google.appengine.ext import webapp
@@ -121,6 +122,23 @@ class GetHandler(webapp.RequestHandler):
             tasks = Task.all().filter('creator =', creator.user)
             json(self, { 'tasks': [ task.to_dict() for task in tasks ] })
 
+class NotifyHandler(webapp.RequestHandler):
+    def post(self):
+        task = Task.get(self.request.get('task'))
+        if not task:
+            logging.warn("Notification aborted for missing task %s", self.request.get('task'))
+            return
+        if not task.notify_url:
+            return
+        try:
+            url = url_with_params(task.notify_url, {
+                'taskId': task.key(),
+                'event': self.request.get('event')
+            })
+            urlfetch.fetch(url)
+        except urlfetch.Error, err: # XXX better syntax in Python 2.6
+            logging.error("Notification for task %s on %s error %s", task.key(), url, err)
+
 class RecruitHandler(webapp.RequestHandler):
     def post(self):
         task = Task.get(self.request.get('task'))
@@ -175,7 +193,6 @@ class DoneHandler(webapp.RequestHandler):
         task = Task.get(key)
         if task.complete(worker):
             worker.contactable()
-            xmpp.send_message(task.creator.email(), 'Your Instawork job was completed: %s' % task.title)
             render(self, 'job_done', task);
         else:
             error(self, 500)
@@ -186,6 +203,7 @@ def routes():
             ('/requester', RequesterHandler),
             ('/api/create_task', CreateHandler),
             ('/api/get_tasks?', GetHandler),
+            ('/queue/notify', NotifyHandler),
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),
             ('/done/(.*)', DoneHandler)]

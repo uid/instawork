@@ -13,6 +13,7 @@ class Task(db.Model):
     title = db.StringProperty(required=True)
     description = db.TextProperty(required=True)
     url = db.LinkProperty(required=True)
+    notify_url = db.LinkProperty()
     created = db.DateTimeProperty(auto_now_add=True)
     creator = db.UserProperty(required=True)
     assigned = db.DateTimeProperty()
@@ -30,8 +31,13 @@ class Task(db.Model):
 
     @staticmethod
     def create(params, creator):
-        task = Task(title=params['title'], description=params['description'], url=params['url'], creator=creator)
+        task = Task(title=params['title'],
+                    description=params['description'],
+                    url=params['url'],
+                    notify_url=params.get('notify_url'),
+                    creator=creator)
         task.put()
+        taskqueue.add(url='/queue/notify', params={ 'task': task.key(), 'event': 'created' })
         return task
 
     def queue(self, countdown):
@@ -49,6 +55,7 @@ class Task(db.Model):
         if db.run_in_transaction(self._assign, worker):
             worker.task = self
             worker.put()
+            taskqueue.add(url='/queue/notify', params={ 'task': self.key(), 'event': 'accepted' })
             return True
         return False
 
@@ -60,6 +67,7 @@ class Task(db.Model):
         if worker.task and worker.task.key() == self.key():
             worker.task = None
             worker.put()
+        taskqueue.add(url='/queue/notify', params={ 'task': self.key(), 'event': 'completed' })
         return True
 
 class UniqueIdStringProperty(db.StringProperty):
