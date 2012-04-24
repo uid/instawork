@@ -26,6 +26,15 @@ def render(handler, templatefile, task=None, vars={}):
     vars.update(strings.__dict__)
     handler.response.out.write(template.render('templates/'+templatefile+'.html', vars))
 
+def error(handler, code, message=None):
+    handler.response.clear()
+    handler.response.set_status(code, message)
+    render(handler, 'error', vars={
+        'code': code,
+        'message': message,
+        'default': webapp.Response.http_status_message(code)
+    })
+
 def signup_phrase_for(email):
     idx = zlib.adler32(email)
     return strings.adjectives[ idx % len(strings.adjectives) ] + " " + strings.nouns[ idx % len(strings.nouns) ]
@@ -100,7 +109,9 @@ class JobHandler(webapp.RequestHandler):
     def get(self, key):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         task = Task.get(key)
-        if not task.assigned_to:
+        if not task:
+            error(self, 404, 'Task not found')
+        elif not task.assigned_to:
             render(self, 'job_preview', task)
         elif task.assigned_to != worker.user:
             render(self, 'job_taken', task)
@@ -131,7 +142,7 @@ class DoneHandler(webapp.RequestHandler):
             xmpp.send_message(task.creator.email(), 'Your Instawork job was completed: %s' % task.title)
             render(self, 'job_done', task);
         else:
-            render(self, 'error')
+            error(self, 500)
 
 def routes():
     return [('/', MainHandler),

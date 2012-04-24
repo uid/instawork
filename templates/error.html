@@ -1,9 +1,14 @@
 {% extends "html.html" %}
 
-{% block title %}{{ block.super }} - Error{% endblock %}
+{% block title %}{{ block.super }} - Error {{ code }} - {{ message|default:default }}{% endblock %}
 
 {% block content %}
-<h2>What an unfortunate circumstance</h2>
+{% if message %}
+<h2>Error - {{ message }}</h2>
+<p>(a.k.a. {{ code }} {{ default }})</p>
+{% else %}
+<h2>Error {{ code }} - {{ default }}</h2>
+{% endif %}
 <p>Sorry, that doesn't seem to have worked.</p>
 <p>Perhaps you asked the impossible? Or merely the reasonable-but-we-can't-do-it-yet?</p>
 {% endblock %}
