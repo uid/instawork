@@ -15,6 +15,7 @@ from google.appengine.ext.webapp import util
 
 from models import *
 import strings
+from utils import *
 
 def render(handler, templatefile, task=None, vars={}):
     vars.update({
@@ -75,14 +76,27 @@ class XMPPHandler(webapp.RequestHandler):
             message.reply("Welcome to Instawork!")
             channel.send_message(user.user_id() + 'signup', 'confirmed')
 
+class RequesterHandler(webapp.RequestHandler):
+    def get(self):
+        worker = Worker.get_by_key_name(users.get_current_user().user_id())
+        render(self, 'requester', vars={ 'api_key': worker.api_key })
+
 class CreateHandler(webapp.RequestHandler):
     def get(self):
-        url = self.request.url + '&user_id=' + users.get_current_user().user_id()
+        user_id = users.get_current_user().user_id()
+        worker = Worker.get_by_key_name(user_id)
+        url = url_with_params(self.request.url, {
+            'userId': user_id,
+            'secretKey': worker.api_key
+        })
         render(self, 'api_helper', vars={ 'name': 'create_task', 'url': url })
 
     def post(self):
-        creator = Worker.get_by_key_name(self.request.get('user_id')).user
-        task = Task.create(self.request.params, creator)
+        creator = Worker.get_by_key_name(self.request.get('userId'))
+        if creator.api_key != self.request.get('secretKey'):
+            error(self, 403)
+            return
+        task = Task.create(self.request.params, creator.user)
         task.queue(0)
 
 class RecruitHandler(webapp.RequestHandler):
@@ -147,6 +161,7 @@ class DoneHandler(webapp.RequestHandler):
 def routes():
     return [('/', MainHandler),
             ('/_ah/xmpp/message/chat/', XMPPHandler),
+            ('/requester', RequesterHandler),
             ('/api/create_task', CreateHandler),
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),

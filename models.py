@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 import os
+import uuid
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
@@ -53,9 +54,14 @@ class Task(db.Model):
             worker.put()
         return True
 
+class UniqueIdStringProperty(db.StringProperty):
+    def default_value(self):
+        return str(uuid.uuid4())
+
 class Worker(db.Model):
     user = db.UserProperty(required=True)
     joined = db.DateTimeProperty(auto_now_add=True)
+    api_key = UniqueIdStringProperty(required=True)
     task = db.ReferenceProperty(Task)
     next_contact = db.DateTimeProperty(required=True, auto_now_add=True)
 

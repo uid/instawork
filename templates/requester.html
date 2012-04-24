@@ -1,0 +1,11 @@
+{% extends "html.html" %}
+
+{% block title %}{{ block.super }} - Requester Information{% endblock %}
+
+{% block content %}
+<h2>Requester information</h2>
+<p>These values are required in all API requests.</p>
+<br/>
+<p>userId = <tt>{{ user.user_id|escape }}</tt></p>
+<p>secretKey = <tt>{{ api_key|escape }}</tt></p>
+{% endblock %}
