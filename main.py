@@ -178,7 +178,7 @@ class JobHandler(webapp.RequestHandler):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         task = Task.get(key)
         if worker.task:
-            render(self, 'job_busy', task)
+            render(self, 'job_busy', worker.task)
         elif task.assign(worker):
             self.redirect(task.fullURL())
         else:
