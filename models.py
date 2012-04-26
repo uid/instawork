@@ -34,7 +34,7 @@ class Task(db.Model):
         task = Task(title=params['title'],
                     description=params['description'],
                     url=params['url'],
-                    notify_url=params.get('notify_url'),
+                    notify_url=params.get('notifyUrl'),
                     creator=creator)
         task.put()
         taskqueue.add(url='/queue/notify', params={ 'task': task.key(), 'event': 'created' })
