@@ -166,7 +166,7 @@ class JobHandler(webapp.RequestHandler):
         if not task:
             error(self, 404, 'Task not found')
         elif not task.assigned_to:
-            render(self, 'job_preview', task)
+            render(self, 'job_preview', task, { 'own': task.creator == worker.user })
         elif task.assigned_to != worker.user:
             render(self, 'job_taken', task)
         elif task.completed:

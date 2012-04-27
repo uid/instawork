@@ -10,7 +10,7 @@
 <br/>
 {% for result in open %}
 {% if forloop.first %}<h2>In-progress job requests</h2>{% endif %}
-<p>{{ result.title|escape }}<br/>
+<p><a href="/go/{{ result.key|escape }}">{{ result.title|escape }}</a><br/>
 {% if result.assigned %}
 Assigned {{ result.assigned|timesince }} ago
 {% else %}

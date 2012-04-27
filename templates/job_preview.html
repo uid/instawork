@@ -1,10 +1,10 @@
 {% extends "html.html" %}
 
 {% block content %}
-<p>{{ enticements|random|escape }}</p>
+<p>{% if own %}You created this job:{% else %}{{ enticements|random|escape }}{% endif %}</p>
 <h2>{{ task.title|escape }}</h2>
 <p>{{ task.description|escape|linebreaksbr }}</p>
 <form method="post">
-<button>Sounds great, let's go</button>
+<button>{% if own %}If you want something done, you gotta do it yourself{% else %}Sounds great, let's go{% endif %}</button>
 </form>
 {% endblock %}
