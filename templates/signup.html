@@ -2,14 +2,14 @@
 
 {% block content %}
 <h2>Signing up is simple</h2>
-<p>First, accept a chat invite from <tt>instawork@appspot.com</tt>...<p>
+<p>First, accept a chat invite from <tt>{{ app_jid|escape }}</tt>...<p>
 <button id="send_invite">click here to send the invite</button>
 <br/>
 <br/>
 <div id="im_instructions" style="display:none">
 <p>Now send the following instant message...</p>
 <p>From: <tt>{{ user.email|escape }}</tt></p>
-<p>To: <tt>instawork@appspot.com</tt></p>
+<p>To: <tt>{{ app_jid|escape }}</tt></p>
 <div style="float: left">
 <div class="bracketed">
 <div style="top:0; left:0;" class="bracket">&quot;</div>

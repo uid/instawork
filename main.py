@@ -7,6 +7,7 @@ use_library('django', '1.2')
 
 from django.utils import simplejson
 
+from google.appengine.api import app_identity
 from google.appengine.api import channel
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
@@ -57,6 +58,7 @@ class MainHandler(webapp.RequestHandler):
             })
         elif user:
             render(self, 'signup', vars={
+                'app_jid': '%s@appspot.com' % app_identity.get_application_id(),
                 'signup_phrase': signup_phrase_for(user.email()),
                 'channel_token': channel.create_channel(user.user_id() + 'signup')
             })
