@@ -202,6 +202,15 @@ class DoneHandler(webapp.RequestHandler):
         else:
             error(self, 500)
 
+class AdminStatusHandler(webapp.RequestHandler):
+    def get(self):
+        render(self, 'admin_status', vars={
+            'active': Task.all().filter('assigned !=', None).filter('completed =', None),
+            'queued': Task.all().filter('assigned =', None),
+            'busy': Worker.all().filter('task !=', None),
+            'free': Worker.all().filter('task =', None).order('next_contact')
+        })
+
 def routes():
     return [('/', MainHandler),
             ('/_ah/xmpp/message/chat/', XMPPHandler),
@@ -211,7 +220,8 @@ def routes():
             ('/queue/notify', NotifyHandler),
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),
-            ('/done/(.*)', DoneHandler)]
+            ('/done/(.*)', DoneHandler),
+            ('/admin/status', AdminStatusHandler)]
 
 def main():
     application = webapp.WSGIApplication(routes(), debug=True)

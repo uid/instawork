@@ -1,0 +1,36 @@
+{% extends "html.html" %}
+
+{% block content %}
+
+<h2>{{ active.count }} in-progress job{{ active.count|pluralize }}</h2>
+{% for task in active %}
+<p>{{ task.title|escape }} - {{ task.assigned_to.nickname|escape }} - {{ task.assigned|timesince }}</p>
+{% endfor %}
+
+<h2>{{ queued.count }} waiting job{{ queued.count|pluralize }}</h2>
+{% for task in queued %}
+<p>{{ task.title|escape }} - {{ task.creator.nickname|escape }} - {{ task.created|timesince }}</p>
+{% endfor %}
+
+<h2>{{ busy.count }} busy worker{{ busy.count|pluralize }}</h2>
+{% for worker in busy %}
+<p>{{ worker.user.nickname|escape }} - {{ worker.task.title|escape }}</p>
+{% endfor %}
+
+<h2>{{ free.count }} free worker{{ free.count|pluralize }}</h2>
+{% for worker in free %}
+<p>{{ worker.user.nickname|escape }} - {{ worker.next_contact|timeuntil }}</p>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<style type="text/css">
+h1 .insta { color: #162B4A; }
+h1 .work { color: #061F1E; }
+a { color: #802BCE; }
+#navigation a { color: #0074B0; }
+#username { border-bottom-color: #0074B0; }
+#footer div { color: #162B4A; }
+</style>
+{% endblock %}
