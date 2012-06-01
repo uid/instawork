@@ -83,6 +83,8 @@ class XMPPHandler(webapp.RequestHandler):
             Worker(key_name=user.user_id(), user=user).put()
             message.reply("Welcome to Instawork!")
             channel.send_message(user.user_id() + 'signup', 'confirmed')
+        else:
+            logging.warn("Signup failed for %s (%s) \"%s\"", sender, user, message.body)
 
 class RequesterHandler(webapp.RequestHandler):
     def get(self):
