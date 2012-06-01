@@ -68,6 +68,7 @@ class MainHandler(webapp.RequestHandler):
     def post(self):
         user = users.get_current_user()
         if user:
+            logging.info("Sending invite to %s", user.email())
             xmpp.send_invite(user.email())
             memcache.add(user.email(), user, namespace='user_emails')
             self.response.set_status(204)
