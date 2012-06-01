@@ -60,6 +60,14 @@ h1 {
     overflow: hidden;
 }
 
+h1 .insta {
+    color: #164A22;
+}
+
+h1 .work {
+    color: #061E1F;
+}
+
 h2 {
     font-size: 0.5in;
     font-weight: normal;
