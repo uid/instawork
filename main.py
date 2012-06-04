@@ -45,6 +45,12 @@ def error(handler, code, message=None):
 def json(handler, dict):
     handler.response.out.write(simplejson.dumps(dict))
 
+def jabber(email, templatefile, address=None, vars={}):
+    return xmpp.send_message(email,
+                             template.render('templates/'+templatefile+'.xml', vars),
+                             from_jid=address,
+                             raw_xml=True)
+
 def signup_phrase_for(email):
     idx = zlib.adler32(email)
     return strings.adjectives[ idx % len(strings.adjectives) ] + " " + strings.nouns[ idx % len(strings.nouns) ]
@@ -81,9 +87,36 @@ class JabberChatHandler(webapp.RequestHandler):
     def post(self):
         message = xmpp.Message(self.request.POST)
         sender = message.sender.partition('/')[0]
+        to = message.to.partition('/')[0]
+        
+        to_ref = WorkerRef.get_by_key_name(to)
+        if to_ref:
+            worker = to_ref.worker
+            if worker.task and worker.task.creator.email() == sender:
+                jabber(worker.user.email(), 'message', vars={
+                    'from': worker.task.creator.nickname(),
+                    'message': message.body
+                })
+            else:
+                message.reply("User is not working for you at the moment")
+            return
+        
+        sender_ref = WorkerRef.get_by_key_name(sender)
+        if sender_ref:
+            if sender_ref.worker.task:
+                worker = sender_ref.worker
+                jabber(worker.task.creator.email(), 'message', address=worker.fwd_jid(), vars={
+                    'from': worker.user.nickname(),
+                    'message': message.body
+                })
+                message.reply("... forwarded")
+            else:
+                message.reply("You are not working on anything at the moment")
+            return
+        
         user = memcache.get(sender, namespace='user_emails')
         if user and message.body.lower() == signup_phrase_for(sender):
-            Worker(key_name=user.user_id(), user=user).put()
+            Worker.create(user)
             message.reply("Welcome to Instawork!")
             channel.send_message(user.user_id() + 'signup', 'confirmed')
         else:
@@ -164,9 +197,7 @@ class RecruitHandler(webapp.RequestHandler):
             if xmpp.get_presence(worker.user.email()):
                 logging.info("Offering to %s task %s", worker.user.email(), task.key())
                 worker.contacted()
-                xmpp.send_message(worker.user.email(),
-                                  template.render('templates/job_offer.xml', { 'host': self.request.host, 'task': task }),
-                                  raw_xml=True)
+                jabber(worker.user.email(), 'job_offer', vars={ 'host': self.request.host, 'task': task })
                 task.queue(30)
                 return
         logging.warn("No free workers for task %s", task.key())
@@ -193,6 +224,8 @@ class JobHandler(webapp.RequestHandler):
         if worker.task:
             render(self, 'job_busy', worker.task)
         elif task.assign(worker):
+            jabber(worker.user.email(), 'job_active', vars={ 'task': task })
+            xmpp.send_invite(task.creator.email(), from_jid=worker.fwd_jid())
             self.redirect(task.fullURL())
         else:
             render(self, 'job_taken', task)

@@ -3,6 +3,7 @@ import logging
 import os
 import uuid
 
+from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.api import taskqueue
@@ -82,6 +83,14 @@ class Worker(db.Model):
     next_contact = db.DateTimeProperty(required=True, auto_now_add=True)
 
     @staticmethod
+    def create(user):
+        worker = Worker(key_name=user.user_id(), user=user)
+        worker.put()
+        WorkerRef(key_name=user.email(), worker=worker).put()
+        WorkerRef(key_name=worker.fwd_jid(), worker=worker).put()
+        return worker
+
+    @staticmethod
     def free_for(task):
         query = Worker.all().filter('task =', None).order('next_contact')
         cursor_key = 'free_cursor_%s' % task.key()
@@ -105,3 +114,10 @@ class Worker(db.Model):
     def contactable(self):
         self.next_contact = datetime.now() + timedelta(seconds=1)
         self.put()
+
+    def fwd_jid(self):
+        nickname = self.user.nickname().partition('@')[0]
+        return '%s@%s.appspotchat.com' % (nickname, app_identity.get_application_id())
+
+class WorkerRef(db.Model):
+    worker = db.ReferenceProperty(Worker, required=True)

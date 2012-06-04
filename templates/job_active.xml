@@ -1,0 +1,1 @@
+<body>Now working on: {{ task.title|escape }}, chat messages will be sent to the requester</body><html xmlns="http://jabber.org/protocol/xhtml-im"><body xmlns="http://www.w3.org/1999/xhtml">Now working on: {{ task.title|escape }}, chat messages will be sent to the requester</body></html>
