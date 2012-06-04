@@ -5,6 +5,7 @@ api_version: 1
 
 inbound_services:
 - xmpp_message
+- xmpp_error
 
 handlers:
 - url: /static

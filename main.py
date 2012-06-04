@@ -77,7 +77,7 @@ class MainHandler(webapp.RequestHandler):
         else:
             self.response.set_status(403)
 
-class XMPPHandler(webapp.RequestHandler):
+class JabberChatHandler(webapp.RequestHandler):
     def post(self):
         message = xmpp.Message(self.request.POST)
         sender = message.sender.partition('/')[0]
@@ -88,6 +88,12 @@ class XMPPHandler(webapp.RequestHandler):
             channel.send_message(user.user_id() + 'signup', 'confirmed')
         else:
             logging.warn("Signup failed for %s (%s) \"%s\"", sender, user, message.body)
+
+class JabberErrorHandler(webapp.RequestHandler):
+    def post(self):
+        sender = self.request.get('from')
+        stanza = self.request.get('stanza')
+        logging.error('XMPP error from %s: %s', sender, stanza)
 
 class RequesterHandler(webapp.RequestHandler):
     def get(self):
@@ -229,7 +235,8 @@ class AdminBlobHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
 def routes():
     return [('/', MainHandler),
-            ('/_ah/xmpp/message/chat/', XMPPHandler),
+            ('/_ah/xmpp/message/chat/', JabberChatHandler),
+            ('/_ah/xmpp/message/error/', JabberErrorHandler),
             ('/requester', RequesterHandler),
             ('/api/create_task', CreateHandler),
             ('/api/get_tasks?', GetHandler),
