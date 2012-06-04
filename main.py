@@ -13,7 +13,9 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.api import xmpp
+from google.appengine.ext import blobstore
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 
@@ -211,6 +213,12 @@ class AdminStatusHandler(webapp.RequestHandler):
             'free': Worker.all().filter('task =', None).order('next_contact')
         })
 
+class AdminBlobHandler(blobstore_handlers.BlobstoreDownloadHandler):
+  def get(self, resource):
+    resource = str(urllib.unquote(resource))
+    blob_info = blobstore.BlobInfo.get(resource)
+    self.send_blob(blob_info)
+
 def routes():
     return [('/', MainHandler),
             ('/_ah/xmpp/message/chat/', XMPPHandler),
@@ -221,7 +229,8 @@ def routes():
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),
             ('/done/(.*)', DoneHandler),
-            ('/admin/status', AdminStatusHandler)]
+            ('/admin/status', AdminStatusHandler),
+            ('/admin/blob/(.*)', AdminBlobHandler)]
 
 def main():
     application = webapp.WSGIApplication(routes(), debug=True)
