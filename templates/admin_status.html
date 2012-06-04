@@ -12,6 +12,8 @@
 <p>{{ task.title|escape }} - {{ task.creator.nickname|escape }} - {{ task.created|timesince }}</p>
 {% endfor %}
 
+<h2><a href="/admin/export">{{ total }} total job{{ total|pluralize }}</a></h2>
+
 <h2>{{ busy.count }} busy worker{{ busy.count|pluralize }}</h2>
 {% for worker in busy %}
 <p>{{ worker.user.nickname|escape }} - {{ worker.task.title|escape }}</p>
@@ -29,6 +31,7 @@
 h1 .insta { color: #162B4A; }
 h1 .work { color: #061F1E; }
 a { color: #802BCE; }
+h2 a { font-weight: normal; }
 #navigation a { color: #0074B0; }
 #username { border-bottom-color: #0074B0; }
 #footer div { color: #162B4A; }

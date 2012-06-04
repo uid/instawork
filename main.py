@@ -209,8 +209,16 @@ class AdminStatusHandler(webapp.RequestHandler):
         render(self, 'admin_status', vars={
             'active': Task.all().filter('assigned !=', None).filter('completed =', None),
             'queued': Task.all().filter('assigned =', None),
+            'total': Task.all().count(),
             'busy': Worker.all().filter('task !=', None),
             'free': Worker.all().filter('task =', None).order('next_contact')
+        })
+
+class AdminExportHandler(webapp.RequestHandler):
+    def get(self):
+        tasks = Task.all()
+        json(self, {
+            'tasks': [ task.to_dict() for task in tasks ]
         })
 
 class AdminBlobHandler(blobstore_handlers.BlobstoreDownloadHandler):
@@ -230,6 +238,7 @@ def routes():
             ('/go/(.*)', JobHandler),
             ('/done/(.*)', DoneHandler),
             ('/admin/status', AdminStatusHandler),
+            ('/admin/export', AdminExportHandler),
             ('/admin/blob/(.*)', AdminBlobHandler)]
 
 def main():
