@@ -61,7 +61,7 @@ class MainHandler(webapp.RequestHandler):
         elif user:
             render(self, 'signup', vars={
                 'app_jid': '%s@appspot.com' % app_identity.get_application_id(),
-                'signup_phrase': signup_phrase_for(user.email()),
+                'signup_phrase': signup_phrase_for(user.email().lower()),
                 'channel_token': channel.create_channel(user.user_id() + 'signup')
             })
         else:
@@ -72,7 +72,7 @@ class MainHandler(webapp.RequestHandler):
         if user:
             logging.info("Sending invite to %s", user.email())
             xmpp.send_invite(user.email())
-            memcache.add(user.email(), user, namespace='user_emails')
+            memcache.add(user.email().lower(), user, namespace='user_emails')
             self.response.set_status(204)
         else:
             self.response.set_status(403)
@@ -80,7 +80,7 @@ class MainHandler(webapp.RequestHandler):
 class JabberChatHandler(webapp.RequestHandler):
     def post(self):
         message = xmpp.Message(self.request.POST)
-        sender = message.sender.partition('/')[0]
+        sender = message.sender.partition('/')[0].lower()
         user = memcache.get(sender, namespace='user_emails')
         if user and message.body.lower() == signup_phrase_for(sender):
             Worker(key_name=user.user_id(), user=user).put()
