@@ -9,11 +9,32 @@ from google.appengine.api import taskqueue
 
 from utils import *
 
+def jsonable(value):
+    if isinstance(value, db.Model):
+        return value.key().name()
+    elif value:
+        return str(value)
+    else:
+        return None
+
+class Pool(db.Model):
+    creator = db.UserProperty(required=True)
+
+    def to_dict(self):
+        return { 'name': self.key().name() }
+
+    @staticmethod
+    def create(params, creator):
+        pool = Pool(key_name=params['name'], creator=creator)
+        pool.put()
+        return pool
+
 class Task(db.Model):
     title = db.StringProperty(required=True)
     description = db.TextProperty(required=True)
     url = db.LinkProperty(required=True)
     notify_url = db.LinkProperty()
+    pool = db.ReferenceProperty(Pool)
     created = db.DateTimeProperty(auto_now_add=True)
     creator = db.UserProperty(required=True)
     assigned = db.DateTimeProperty()
@@ -21,9 +42,8 @@ class Task(db.Model):
     completed = db.DateTimeProperty()
 
     def to_dict(self):
-        jsonable = lambda p: str(p) if p else None
         return dict([ (p, jsonable(getattr(self, p))) for p in [
-            'title', 'description', 'url', 'created', 'assigned', 'completed'
+            'title', 'description', 'url', 'pool', 'created', 'assigned', 'completed'
         ] ] + [ ('taskId', str(self.key())) ])
 
     def fullURL(self):
@@ -36,6 +56,8 @@ class Task(db.Model):
                     url=params['url'],
                     notify_url=params.get('notifyUrl'),
                     creator=creator)
+        if 'pool' in params:
+            task.pool = Pool.get_by_key_name(params['pool'])
         task.put()
         taskqueue.add(url='/queue/notify', params={ 'task': task.key(), 'event': 'created' })
         return task
@@ -78,12 +100,22 @@ class Worker(db.Model):
     user = db.UserProperty(required=True)
     joined = db.DateTimeProperty(auto_now_add=True)
     api_key = UniqueIdStringProperty(required=True)
+    pools = db.ListProperty(db.Key, required=True)
     task = db.ReferenceProperty(Task)
     next_contact = db.DateTimeProperty(required=True, auto_now_add=True)
 
     @staticmethod
+    def create(user):
+        worker = Worker(key_name=user.user_id(), user=user)
+        worker.put()
+        return worker
+
+    @staticmethod
     def free_for(task):
-        query = Worker.all().filter('task =', None).order('next_contact')
+        query = Worker.all().filter('task =', None)
+        if task.pool:
+            query.filter('pools =', task.pool.key())
+        query.order('next_contact')
         cursor_key = 'free_cursor_%s' % task.key()
         cursor = memcache.get(cursor_key)
         if cursor:
@@ -97,6 +129,16 @@ class Worker(db.Model):
                 continue
             yield worker
         memcache.delete(cursor_key)
+
+    def join_pool(self, name):
+        pool = Pool.get_by_key_name(name) if name else False
+        if pool:
+            if pool.key() not in self.pools:
+                logging.info("Worker %s joining group %s", self.user.email(), pool.key().name())
+                self.pools.append(pool.key())
+                self.put()
+            return True
+        return False
 
     def contacted(self):
         self.next_contact = datetime.now() + timedelta(minutes=5)

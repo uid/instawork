@@ -69,7 +69,14 @@ class MainHandler(webapp.RequestHandler):
 
     def post(self):
         user = users.get_current_user()
-        if user:
+        worker = user and Worker.get_by_key_name(user.user_id())
+        if worker:
+            pool = self.request.get('pool')
+            if worker.join_pool(pool) or not pool:
+                self.redirect('/')
+            else:
+                error(self, 404, 'Unable to Join Group')
+        elif user:
             logging.info("Sending invite to %s", user.email())
             xmpp.send_invite(user.email())
             memcache.add(user.email().lower(), user, namespace='user_emails')
@@ -83,7 +90,7 @@ class JabberChatHandler(webapp.RequestHandler):
         sender = message.sender.partition('/')[0].lower()
         user = memcache.get(sender, namespace='user_emails')
         if user and message.body.lower() == signup_phrase_for(sender):
-            Worker(key_name=user.user_id(), user=user).put()
+            Worker.create(user)
             message.reply("Welcome to Instawork!")
             channel.send_message(user.user_id() + 'signup', 'confirmed')
         else:
@@ -100,7 +107,7 @@ class RequesterHandler(webapp.RequestHandler):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         render(self, 'requester', { 'api_key': worker.api_key })
 
-class CreateHandler(webapp.RequestHandler):
+class TaskCreateHandler(webapp.RequestHandler):
     def get(self):
         user_id = users.get_current_user().user_id()
         worker = Worker.get_by_key_name(user_id)
@@ -119,7 +126,7 @@ class CreateHandler(webapp.RequestHandler):
         task.queue(0)
         json(self, task.to_dict())
 
-class GetHandler(webapp.RequestHandler):
+class TaskGetHandler(webapp.RequestHandler):
     def get(self):
         creator = Worker.get_by_key_name(self.request.get('userId'))
         if creator.api_key != self.request.get('secretKey'):
@@ -134,6 +141,24 @@ class GetHandler(webapp.RequestHandler):
         else:
             tasks = Task.all().filter('creator =', creator.user)
             json(self, { 'tasks': [ task.to_dict() for task in tasks ] })
+
+class PoolCreateHandler(webapp.RequestHandler):
+    def get(self):
+        user_id = users.get_current_user().user_id()
+        worker = Worker.get_by_key_name(user_id)
+        url = url_with_params(self.request.url, {
+            'userId': user_id,
+            'secretKey': worker.api_key
+        })
+        render(self, 'api_helper', { 'name': 'create_pool', 'url': url })
+
+    def post(self):
+        creator = Worker.get_by_key_name(self.request.get('userId'))
+        if creator.api_key != self.request.get('secretKey'):
+            error(self, 403)
+            return
+        pool = Pool.create(self.request.params, creator.user)
+        json(self, pool.to_dict())
 
 class NotifyHandler(webapp.RequestHandler):
     def post(self):
@@ -238,8 +263,9 @@ def routes():
             ('/_ah/xmpp/message/chat/', JabberChatHandler),
             ('/_ah/xmpp/message/error/', JabberErrorHandler),
             ('/requester', RequesterHandler),
-            ('/api/create_task', CreateHandler),
-            ('/api/get_tasks?', GetHandler),
+            ('/api/create_task', TaskCreateHandler),
+            ('/api/get_tasks?', TaskGetHandler),
+            ('/api/create_pool', PoolCreateHandler),
             ('/queue/notify', NotifyHandler),
             ('/queue/recruit', RecruitHandler),
             ('/go/(.*)', JobHandler),

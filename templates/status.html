@@ -1,6 +1,7 @@
 {% extends "html.html" %}
 
 {% block content %}
+
 {% if worker.task %}
 <p>Currently working on:</p>
 <p><a href="/go/{{ worker.task.key|escape }}">{{ worker.task.title|escape }}</a></p>
@@ -8,6 +9,7 @@
 <p>Looks like you're not working on anything at the moment.</p>
 {% endif %}
 <br/>
+
 {% for result in open %}
 {% if forloop.first %}<h2>In-progress job requests</h2>{% endif %}
 <p><a href="/go/{{ result.key|escape }}">{{ result.title|escape }}</a><br/>
@@ -16,11 +18,25 @@ Assigned {{ result.assigned|timesince }} ago
 {% else %}
 Created {{ result.created|timesince }} ago
 {% endif %}</p>
+{% if forloop.last %}<br/>{% endif %}
 {% endfor %}
-<br/>
+
 {% for result in done %}
 {% if forloop.first %}<h2>Completed job requests</h2>{% endif %}
 <p>{{ result.title|escape }}<br/>
 Completed {{ result.completed|timesince }} ago</p>
+{% if forloop.last %}<br/>{% endif %}
 {% endfor %}
+
+{% for key in worker.pools %}
+{% if forloop.first %}<h2>Groups</h2><p>{% endif %}
+{{ key.name|escape }}
+{% if forloop.last %}</p><br/>{% else %}-{% endif %}
+{% endfor %}
+
+<h2>Join a group</h2>
+<form method="post">
+<input type="text" name="pool"></input> <button type="submit" class="button">join</button>
+</form>
+
 {% endblock %}

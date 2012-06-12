@@ -10,7 +10,7 @@ html, body {
     height: 100%;
 }
 
-body, button {
+body, button, input {
     font-family: 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 0.25in;
 }
@@ -26,7 +26,7 @@ body {
     margin: 0 1in -1in;
 }
 
-p {
+p, form {
     margin: 0.5em 0;
 }
 
@@ -46,6 +46,21 @@ button {
 
 button:hover {
     text-decoration: underline;
+}
+
+button.button {
+    padding: 1px 6px;
+    border: 1px solid #FF7813;
+}
+
+button.button:hover {
+    text-decoration: none;
+    padding: 0 5px;
+    border-width: 2px;
+}
+
+input[type=text] {
+    border: 1px solid #98B000;
 }
 
 h1, #username, #footer div, .bracket {
