@@ -23,12 +23,11 @@ from models import *
 import strings
 from utils import *
 
-def render(handler, templatefile, task=None, vars={}):
+def render(handler, templatefile, vars={}):
     vars.update({
         'user': users.get_current_user(),
         'login_url': users.create_login_url(handler.request.uri),
-        'logout_url': users.create_logout_url('/'),
-        'task': task
+        'logout_url': users.create_logout_url('/')
     })
     vars.update(strings.__dict__)
     handler.response.out.write(template.render('templates/'+templatefile+'.html', vars))
@@ -36,7 +35,7 @@ def render(handler, templatefile, task=None, vars={}):
 def error(handler, code, message=None):
     handler.response.clear()
     handler.response.set_status(code, message)
-    render(handler, 'error', vars={
+    render(handler, 'error', {
         'code': code,
         'message': message,
         'default': webapp.Response.http_status_message(code)
@@ -54,12 +53,13 @@ class MainHandler(webapp.RequestHandler):
         user = users.get_current_user()
         worker = user and Worker.get_by_key_name(user.user_id())
         if worker:
-            render(self, 'status', worker.task, vars={
+            render(self, 'status', {
+                'worker': worker,
                 'open': Task.all().filter('creator =', user).filter('completed =', None),
                 'done': Task.all().filter('creator =', user).filter('completed !=', None)
             })
         elif user:
-            render(self, 'signup', vars={
+            render(self, 'signup', {
                 'app_jid': '%s@appspot.com' % app_identity.get_application_id(),
                 'signup_phrase': signup_phrase_for(user.email().lower()),
                 'channel_token': channel.create_channel(user.user_id() + 'signup')
@@ -98,7 +98,7 @@ class JabberErrorHandler(webapp.RequestHandler):
 class RequesterHandler(webapp.RequestHandler):
     def get(self):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
-        render(self, 'requester', vars={ 'api_key': worker.api_key })
+        render(self, 'requester', { 'api_key': worker.api_key })
 
 class CreateHandler(webapp.RequestHandler):
     def get(self):
@@ -108,7 +108,7 @@ class CreateHandler(webapp.RequestHandler):
             'userId': user_id,
             'secretKey': worker.api_key
         })
-        render(self, 'api_helper', vars={ 'name': 'create_task', 'url': url })
+        render(self, 'api_helper', { 'name': 'create_task', 'url': url })
 
     def post(self):
         creator = Worker.get_by_key_name(self.request.get('userId'))
@@ -179,40 +179,40 @@ class JobHandler(webapp.RequestHandler):
         if not task:
             error(self, 404, 'Task not found')
         elif not task.assigned_to:
-            render(self, 'job_preview', task, { 'own': task.creator == worker.user })
+            render(self, 'job_preview', { 'task': task, 'own': task.creator == worker.user })
         elif task.assigned_to != worker.user:
-            render(self, 'job_taken', task)
+            render(self, 'job_taken', { 'task': task })
         elif task.completed:
-            render(self, 'job_review', task)
+            render(self, 'job_review', { 'task': task })
         else:
-            render(self, 'job_busy', task)
+            render(self, 'job_busy', { 'task': task })
 
     def post(self, key):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         task = Task.get(key)
         if worker.task:
-            render(self, 'job_busy', worker.task)
+            render(self, 'job_busy', { 'task': worker.task })
         elif task.assign(worker):
             self.redirect(task.fullURL())
         else:
-            render(self, 'job_taken', task)
+            render(self, 'job_taken', { 'task': task })
 
 class DoneHandler(webapp.RequestHandler):
     def get(self, key):
-        render(self, 'api_helper', vars={ 'name': 'done', 'url': self.request.uri })
+        render(self, 'api_helper', { 'name': 'done', 'url': self.request.uri })
 
     def post(self, key):
         worker = Worker.get_by_key_name(users.get_current_user().user_id())
         task = Task.get(key)
         if task.complete(worker):
             worker.contactable()
-            render(self, 'job_done', task);
+            render(self, 'job_done', { 'task': task });
         else:
             error(self, 500)
 
 class AdminStatusHandler(webapp.RequestHandler):
     def get(self):
-        render(self, 'admin_status', vars={
+        render(self, 'admin_status', {
             'active': Task.all().filter('assigned !=', None).filter('completed =', None),
             'queued': Task.all().filter('assigned =', None),
             'total': Task.all().count(),
