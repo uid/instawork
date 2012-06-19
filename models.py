@@ -139,6 +139,16 @@ class Worker(db.Model):
                 self.put()
             return True
         return False
+    
+    def leave_pool(self, name):
+        pool = Pool.get_by_key_name(name) if name else False
+        if pool:
+            if pool.key() in self.pools:
+                logging.info("Worker %s leaving group %s", self.user.email(), pool.key().name())
+                self.pools.remove(pool.key())
+                self.put()
+            return True
+        return False
 
     def contacted(self):
         self.next_contact = datetime.now() + timedelta(minutes=5)

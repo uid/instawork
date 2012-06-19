@@ -241,9 +241,22 @@ class AdminStatusHandler(webapp.RequestHandler):
             'active': Task.all().filter('assigned !=', None).filter('completed =', None),
             'queued': Task.all().filter('assigned =', None),
             'total': Task.all().count(),
+            'workers': Worker.all(),
             'busy': Worker.all().filter('task !=', None),
-            'free': Worker.all().filter('task =', None).order('next_contact')
+            'free': Worker.all().filter('task =', None).order('next_contact'),
+            'pools': Pool.all()
         })
+    
+    def post(self):
+        user_id = self.request.get('worker')
+        pool = self.request.get('pool')
+        if user_id and pool:
+            worker = Worker.get_by_key_name(user_id)
+            if 'join' in self.request.params:
+                worker.join_pool(pool)
+            elif 'leave' in self.request.params:
+                worker.leave_pool(pool)
+        self.redirect(self.request.path)
 
 class AdminExportHandler(webapp.RequestHandler):
     def get(self):

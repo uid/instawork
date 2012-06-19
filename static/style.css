@@ -10,7 +10,7 @@ html, body {
     height: 100%;
 }
 
-body, button, input {
+body, button, input, select {
     font-family: 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 0.25in;
 }

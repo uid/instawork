@@ -2,6 +2,29 @@
 
 {% block content %}
 
+<form method="post">
+<h2>{{ pools.count }} group{{ pools.count|pluralize }}</h2>
+<p>{% for pool in pools %}{{ pool.key.name }}<br/>{% endfor %}</p>
+<p>
+<select name="worker">
+  <option value=""></option>
+  {% for worker in workers %}
+  <option value="{{ worker.key.name }}">{{ worker.user.nickname|escape }}
+  {% endfor %}
+</select>
+<select name="pool">
+  <option value=""></option>
+  {% for pool in pools %}
+  <option value="{{ pool.key.name }}">{{ pool.key.name }}
+  {% endfor %}
+</select>
+</p>
+<p>
+<button type="submit" class="button" name="join">join</button>
+<button type="submit" class="button" name="leave">leave</button>
+</p>
+</form>
+
 <h2>{{ active.count }} in-progress job{{ active.count|pluralize }}</h2>
 {% for task in active %}
 <p>{{ task.title|escape }} - {{ task.assigned_to.nickname|escape }} - {{ task.assigned|timesince }}</p>
@@ -16,12 +39,12 @@
 
 <h2>{{ busy.count }} busy worker{{ busy.count|pluralize }}</h2>
 {% for worker in busy %}
-<p>{{ worker.user.nickname|escape }} - {{ worker.task.title|escape }}</p>
+<p>{{ worker.user.nickname|escape }} - {% for key in worker.pools %}{{ key.name|escape }} {% endfor %} - {{ worker.task.title|escape }}</p>
 {% endfor %}
 
 <h2>{{ free.count }} free worker{{ free.count|pluralize }}</h2>
 {% for worker in free %}
-<p>{{ worker.user.nickname|escape }} - {{ worker.next_contact|timeuntil }}</p>
+<p>{{ worker.user.nickname|escape }} - {% for key in worker.pools %}{{ key.name|escape }} {% endfor %} - {{ worker.next_contact|timeuntil }}</p>
 {% endfor %}
 
 {% endblock %}
@@ -34,6 +57,9 @@ a { color: #802BCE; }
 h2 a { font-weight: normal; }
 #navigation a { color: #0074B0; }
 #username { border-bottom-color: #0074B0; }
+form { float: right; margin: 0; }
+button { color: #802BCE; }
+button.button { border-color: #802BCE; }
 #footer div { color: #162B4A; }
 </style>
 {% endblock %}
